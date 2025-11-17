@@ -1,5 +1,6 @@
 import { UserQuery, LegalDocument, UserProfile } from '../models';
 import { getLegalGuidance, analyzeLegalDocument } from '@/lib/ai/openai';
+import { COUNTRIES } from '@/lib/constants';
 
 export const LegalAIService = {
   async processQuery(
@@ -13,9 +14,9 @@ export const LegalAIService = {
       let response: string;
 
       if (queryType === 'document_analysis') {
-        response = await analyzeLegalDocument(query);
+        response = await analyzeLegalDocument(query, COUNTRIES[0]);
       } else {
-        response = await getLegalGuidance(query);
+        response = await getLegalGuidance(query, COUNTRIES[0]);
       }
 
       const userQuery = await UserQuery.create({

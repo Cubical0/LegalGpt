@@ -3,6 +3,7 @@ import { successResponse, errorResponse } from '@/lib/utils/response';
 import { LegalNotice, NoticeReply } from '@/lib/legal-ai/models';
 import { getLegalGuidance } from '@/lib/ai/openai';
 import { getUserFromToken } from '@/lib/middleware/auth';
+import { COUNTRIES } from '@/lib/constants';
 
 interface ReplyRequest {
   content: string;
@@ -50,7 +51,8 @@ export async function POST(
     }
 
     const analysis = await getLegalGuidance(
-      `Review this legal reply to a ${notice.noticeType}:\n\nOriginal Notice:\n${notice.content}\n\nProposed Reply:\n${body.content}`
+      `Review this legal reply to a ${notice.noticeType}:\n\nOriginal Notice:\n${notice.content}\n\nProposed Reply:\n${body.content}`,
+      COUNTRIES[0]
     );
 
     const result = await NoticeReply.create({

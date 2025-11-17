@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { successResponse, errorResponse } from "@/lib/utils/response";
 import { getLegalGuidance, analyzeLegalDocument } from "@/lib/ai/openai";
+import { COUNTRIES } from "@/lib/constants";
 
 interface GuidanceRequest {
   query: string;
-  type?: "question" | "document";
+  type?: "question" | "document_analysis";
+  country?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -18,16 +20,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const country = COUNTRIES.find((c) => c.code === body.country) || COUNTRIES[0];
+
     let guidance: string;
 
-    if (body.type === "document") {
-      guidance = await analyzeLegalDocument(body.query);
+    if (body.type === "document_analysis") {
+      guidance = await analyzeLegalDocument(body.query, country);
     } else {
-      guidance = await getLegalGuidance(body.query);
+      guidance = await getLegalGuidance(body.query, country);
     }
 
     return NextResponse.json(successResponse({ guidance }));
   } catch (error) {
+    console.error("Legal guidance error:", error);
     return NextResponse.json(
       errorResponse(
         error instanceof Error ? error.message : "Failed to get guidance"

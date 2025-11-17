@@ -3,6 +3,7 @@ import { successResponse, errorResponse } from '@/lib/utils/response';
 import { LegalNotice } from '@/lib/legal-ai/models';
 import { getLegalGuidance } from '@/lib/ai/openai';
 import { getUserFromToken } from '@/lib/middleware/auth';
+import { COUNTRIES } from '@/lib/constants';
 
 interface NoticeRequest {
   title: string;
@@ -32,7 +33,8 @@ export async function POST(req: NextRequest) {
     }
 
     const analysis = await getLegalGuidance(
-      `Analyze this legal notice:\n\nTitle: ${body.title}\n\nContent: ${body.content}\n\nType: ${body.noticeType}`
+      `Analyze this legal notice:\n\nTitle: ${body.title}\n\nContent: ${body.content}\n\nType: ${body.noticeType}`,
+      COUNTRIES[0]
     );
 
     const result = await LegalNotice.create({

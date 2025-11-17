@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { Country, CONSTITUTION_SYSTEM_PROMPT_BASE } from '@/lib/constants';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set in environment variables');
@@ -8,14 +9,16 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function getLegalGuidance(query: string): Promise<string> {
+export async function getLegalGuidance(query: string, country: Country): Promise<string> {
   try {
+    const systemPrompt = CONSTITUTION_SYSTEM_PROMPT_BASE(country);
+    
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: `You are a senior attorney. Provide legal advice with specific statute citations, sections, and articles. For each recommendation, cite applicable laws (federal/state/local) with exact statute numbers and sections. Reference relevant case law. Explain how laws apply.`,
+          content: systemPrompt,
         },
         {
           role: 'user',
@@ -39,14 +42,12 @@ export async function getLegalGuidance(query: string): Promise<string> {
   }
 }
 
-export async function analyzeLegalDocument(documentText: string): Promise<string> {
+export async function analyzeLegalDocument(documentText: string, country: Country): Promise<string> {
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a contract attorney. Analyze the document under these headings:
+    const basePrompt = CONSTITUTION_SYSTEM_PROMPT_BASE(country);
+    const systemPrompt = `${basePrompt}
+
+Additionally, analyze the document under these headings:
 1. Summary
 2. Key Clauses & Risks
 3. Dates/Deadlines
@@ -56,7 +57,14 @@ export async function analyzeLegalDocument(documentText: string): Promise<string
 7. Recommendations
 8. Missing Protections
 
-For each point, cite applicable statutes, sections, and articles with specific numbers. Reference relevant case law. Explain legal implications concisely.`,
+For each point, cite applicable statutes, sections, and articles with specific numbers. Reference relevant case law. Explain legal implications concisely.`;
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: systemPrompt,
         },
         {
           role: 'user',
